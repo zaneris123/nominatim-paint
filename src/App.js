@@ -2,7 +2,7 @@ import './App.css';
 import PageAppBar from './components/appBar';
 import MapBase from './components/map/mapBase';
 
-function App() {
+export default function App() {
   return (
     <div className="App">
       <PageAppBar/>
@@ -10,5 +10,3 @@ function App() {
     </div>
   );
 }
-
-export default App;
