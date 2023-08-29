@@ -12,7 +12,7 @@ L.Icon.Default.mergeOptions({
     shadowUrl: require('leaflet/dist/images/marker-shadow.png')
 });
 
-export default function MapView (){
+export default function MapView ({setJson}){
     const [currentSelectedJson, setCurrentSelectedJson] = useState(null);
     const [lastClick, setLastClick] = useState(null)
     const [isGettingJson, setIsGettingJson] = useState(false)
@@ -30,6 +30,7 @@ export default function MapView (){
                     currentMarker.addTo(map)
                     getPolygonGeoJSON(latlng.lat, latlng.lng).then(json => {
                         const currentSelection = geoJSON(json)
+                        setJson(json)
                         currentSelection.addTo(map)
                         setCurrentSelectedJson(currentSelection)
                         setIsGettingJson(false)
