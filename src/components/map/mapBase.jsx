@@ -1,13 +1,13 @@
 import { Accordion, AccordionDetails, AccordionSummary, Paper, Stack, Table, TableBody, TableCell, TableContainer, TableRow } from "@mui/material";
-import { useState } from "react";
+import { useJsonStore } from "../utils/stores";
 import MapView from "./mapView";
 
 export default function MapBase (){
-    const [getJson, setJson] = useState(null)
+    const getJson = useJsonStore((state) => state.json)
     return(
         <div>
             <Stack direction="row">
-                <MapView setJson={setJson}/>
+                <MapView/>
                 <Paper className="map-controller">
                     <Accordion>
                         <AccordionSummary>Selected</AccordionSummary>

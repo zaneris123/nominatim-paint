@@ -3,6 +3,7 @@ import 'leaflet/dist/leaflet.css';
 import { useState } from 'react';
 import { MapContainer, TileLayer, useMapEvents } from 'react-leaflet';
 import getPolygonGeoJSON from '../utils/getGeoJSON';
+import { useJsonStore, useSelectionStore } from '../utils/stores';
 
 delete L.Icon.Default.prototype._getIconUrl;
 
@@ -12,8 +13,10 @@ L.Icon.Default.mergeOptions({
     shadowUrl: require('leaflet/dist/images/marker-shadow.png')
 });
 
-export default function MapView ({setJson}){
-    const [currentSelectedJson, setCurrentSelectedJson] = useState(null);
+export default function MapView (){
+    const setCurrentSelectedJson = useSelectionStore((state) => state.setSelection)
+    const currentSelectedJson = useSelectionStore((state) => state.selection)
+    const setJson = useJsonStore((state) => state.setJson)
     const [lastClick, setLastClick] = useState(null)
     const [isGettingJson, setIsGettingJson] = useState(false)
     const MapClick = () => {
@@ -22,6 +25,7 @@ export default function MapView ({setJson}){
                 if(!isGettingJson){
                     setIsGettingJson(true)
                     if(currentSelectedJson){
+                        console.log(currentSelectedJson)
                         map.removeLayer(currentSelectedJson)
                         map.removeLayer(lastClick)
                     }
