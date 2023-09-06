@@ -24,10 +24,12 @@ export default function MapView (){
                 if(!isGettingJson){
                     setIsGettingJson(true)
                     setMarkerPosition([latlng.lat, latlng.lng])
-                    getPolygonGeoJSON(latlng.lat, latlng.lng).then(json => {
+                    getPolygonGeoJSON(latlng.lat, latlng.lng)
+                    .then(json => {
                         setCurrentSelectedJson(json)
                         setIsGettingJson(false)
-                    }).catch((err)=>{
+                    })
+                    .catch((err)=>{
                         setIsGettingJson(false)
                     })
                 }
