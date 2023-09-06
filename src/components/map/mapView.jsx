@@ -1,9 +1,9 @@
-import L, { geoJSON, marker } from 'leaflet';
+import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { useState } from 'react';
-import { MapContainer, TileLayer, useMapEvents } from 'react-leaflet';
+import { GeoJSON, MapContainer, Marker, TileLayer, useMapEvents } from 'react-leaflet';
 import getPolygonGeoJSON from '../utils/getGeoJSON';
-import { useJsonStore, useSelectionStore } from '../utils/stores';
+import { useSelectionStore } from '../utils/stores';
 
 delete L.Icon.Default.prototype._getIconUrl;
 
@@ -16,27 +16,16 @@ L.Icon.Default.mergeOptions({
 export default function MapView (){
     const setCurrentSelectedJson = useSelectionStore((state) => state.setSelection)
     const currentSelectedJson = useSelectionStore((state) => state.selection)
-    const setJson = useJsonStore((state) => state.setJson)
-    const [lastClick, setLastClick] = useState(null)
     const [isGettingJson, setIsGettingJson] = useState(false)
+    const [markerPosition, setMarkerPosition] = useState(null)
     const MapClick = () => {
         const map = useMapEvents({
             click: ({latlng}) =>{
                 if(!isGettingJson){
                     setIsGettingJson(true)
-                    if(currentSelectedJson){
-                        console.log(currentSelectedJson)
-                        map.removeLayer(currentSelectedJson)
-                        map.removeLayer(lastClick)
-                    }
-                    const currentMarker = marker(latlng)
-                    setLastClick(currentMarker)
-                    currentMarker.addTo(map)
+                    setMarkerPosition([latlng.lat, latlng.lng])
                     getPolygonGeoJSON(latlng.lat, latlng.lng).then(json => {
-                        const currentSelection = geoJSON(json)
-                        setJson(json)
-                        currentSelection.addTo(map)
-                        setCurrentSelectedJson(currentSelection)
+                        setCurrentSelectedJson(json)
                         setIsGettingJson(false)
                     }).catch((err)=>{
                         setIsGettingJson(false)
@@ -53,6 +42,8 @@ export default function MapView (){
             <TileLayer
                 attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
                 url="https://a.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}@2x.png"></TileLayer>
+            {markerPosition && <Marker position={markerPosition} />}
+            {currentSelectedJson && <GeoJSON key={Math.random()} data={currentSelectedJson} />}
         </MapContainer>
     )
 }

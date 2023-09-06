@@ -1,9 +1,10 @@
 import { Accordion, AccordionDetails, AccordionSummary, Paper, Stack, Table, TableBody, TableCell, TableContainer, TableRow } from "@mui/material";
-import { useJsonStore } from "../utils/stores";
+import { useSelectionStore } from "../utils/stores";
 import MapView from "./mapView";
 
 export default function MapBase (){
-    const getJson = useJsonStore((state) => state.json)
+    const getJson = useSelectionStore((state) => state.selection)
+
     return(
         <div>
             <Stack direction="row">
