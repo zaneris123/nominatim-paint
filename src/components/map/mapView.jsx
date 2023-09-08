@@ -1,8 +1,9 @@
+import { Box, Slider } from '@mui/material';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { useState } from 'react';
 import { GeoJSON, MapContainer, Marker, TileLayer, useMapEvents } from 'react-leaflet';
-import getPolygonGeoJSON from '../utils/getGeoJSON';
+import getPolygonGeoJSON, { jsonZoomMarks } from '../utils/getGeoJSON';
 import { useSelectionStore } from '../utils/stores';
 
 delete L.Icon.Default.prototype._getIconUrl;
@@ -16,6 +17,7 @@ L.Icon.Default.mergeOptions({
 export default function MapView (){
     const setCurrentSelectedJson = useSelectionStore((state) => state.setSelection)
     const currentSelectedJson = useSelectionStore((state) => state.selection)
+    const [jsonZoom, setJsonZoom] = useState(6)
     const [isGettingJson, setIsGettingJson] = useState(false)
     const [markerPosition, setMarkerPosition] = useState(null)
     const MapClick = () => {
@@ -24,7 +26,7 @@ export default function MapView (){
                 if(!isGettingJson){
                     setIsGettingJson(true)
                     setMarkerPosition([latlng.lat, latlng.lng])
-                    getPolygonGeoJSON(latlng.lat, latlng.lng)
+                    getPolygonGeoJSON(latlng.lat, latlng.lng, jsonZoom)
                     .then(json => {
                         setCurrentSelectedJson(json)
                         setIsGettingJson(false)
@@ -38,8 +40,8 @@ export default function MapView (){
         return null
     }
     return(
-        <MapContainer center={[51.505, -0.09]} zoom={13} scrollWheelZoom={false}>
-            
+        <Box position="relative" width="100%" height="95vh">
+        <MapContainer center={[51.505, -0.09]} zoom={13} scrollWheelZoom={true}>
             <MapClick/>
             <TileLayer
                 attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
@@ -47,5 +49,18 @@ export default function MapView (){
             {markerPosition && <Marker position={markerPosition} />}
             {currentSelectedJson && <GeoJSON key={Math.random()} data={currentSelectedJson} />}
         </MapContainer>
+        <Box position="absolute" bottom="5%" left="0%" width={100} height={300} zIndex={1000}>
+                <Slider
+                    value={jsonZoom}
+                    onChange={(event, newZoom)=> setJsonZoom(newZoom)}
+                    min={0}
+                    max={18}
+                    orientation="vertical"
+                    step={1}
+                    marks={jsonZoomMarks}
+                    valueLabelDisplay="auto"
+                />
+            </Box>
+        </Box>
     )
 }
