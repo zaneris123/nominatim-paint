@@ -21,7 +21,7 @@ export default function MapView (){
     const [isGettingJson, setIsGettingJson] = useState(false)
     const [markerPosition, setMarkerPosition] = useState(null)
     const MapClick = () => {
-        const map = useMapEvents({
+        useMapEvents({
             click: ({latlng}) =>{
                 if(!isGettingJson){
                     setIsGettingJson(true)
