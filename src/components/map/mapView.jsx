@@ -33,6 +33,8 @@ function ValueLabelComponent(props) {
 export default function MapView (){
     const setCurrentSelectedJson = useSelectionStore((state) => state.setSelection)
     const currentSelectedJson = useSelectionStore((state) => state.selection)
+    const currentColor = useSelectionStore((state) => state.color)
+    const groups = useSelectionStore((state) => state.groups)
     const [jsonZoom, setJsonZoom] = useState(6)
     const [isGettingJson, setIsGettingJson] = useState(false)
     const [markerPosition, setMarkerPosition] = useState(null)
@@ -56,6 +58,27 @@ export default function MapView (){
         })
         return null
     }
+
+    // Style for the current selection
+    const selectionStyle = {
+        fillColor: currentColor,
+        weight: 2,
+        opacity: 1,
+        color: currentColor,
+        fillOpacity: 0.2
+    };
+    
+    // Function to generate style for group layers
+    const getGroupStyle = (groupColor) => {
+        return {
+            fillColor: groupColor,
+            weight: 2,
+            opacity: 1,
+            color: groupColor,
+            fillOpacity: 0.2
+        };
+    };
+
     return(
         <Box position="relative" width="100%" height="95vh">
         <MapContainer center={[51.505, -0.09]} zoom={13} scrollWheelZoom={true}>
@@ -64,7 +87,31 @@ export default function MapView (){
                 attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
                 url="https://a.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}@2x.png"></TileLayer>
             {markerPosition && <Marker position={markerPosition} />}
-            {currentSelectedJson && <GeoJSON key={Math.random()} data={currentSelectedJson} />}
+            
+            {/* Render all group GeoJSONs first (behind the current selection) */}
+            {Object.values(groups).map(group => {
+                if (group.features.length === 0) return null;
+                const groupData = {
+                    type: "FeatureCollection",
+                    features: group.features
+                };
+                return (
+                    <GeoJSON 
+                        key={`group-${group.id}`}
+                        data={groupData}
+                        style={getGroupStyle(group.color)}
+                    />
+                );
+            })}
+            
+            {/* Render the current selection on top */}
+            {currentSelectedJson && 
+                <GeoJSON 
+                    key={`selection-${Math.random()}`} 
+                    data={currentSelectedJson} 
+                    style={selectionStyle} 
+                />
+            }
         </MapContainer>
         <Box position="absolute" bottom="5%" left="4%" width={100} height={300} zIndex={1000}>
                 <Slider
