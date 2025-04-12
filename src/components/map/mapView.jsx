@@ -1,4 +1,4 @@
-import { Box, Slider } from '@mui/material';
+import { Box, Slider, Tooltip } from '@mui/material';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { useState } from 'react';
@@ -13,6 +13,22 @@ L.Icon.Default.mergeOptions({
     iconUrl: require('leaflet/dist/images/marker-icon.png'),
     shadowUrl: require('leaflet/dist/images/marker-shadow.png')
 });
+
+function ValueLabelComponent(props) {
+    const { children, value } = props;
+    
+    return (
+        <Tooltip
+            open={true}
+            enterTouchDelay={0}
+            placement="left"
+            title={value}
+            arrow
+        >
+            {children}
+        </Tooltip>
+    );
+}
 
 export default function MapView (){
     const setCurrentSelectedJson = useSelectionStore((state) => state.setSelection)
@@ -49,7 +65,7 @@ export default function MapView (){
             {markerPosition && <Marker position={markerPosition} />}
             {currentSelectedJson && <GeoJSON key={Math.random()} data={currentSelectedJson} />}
         </MapContainer>
-        <Box position="absolute" bottom="5%" left="0%" width={100} height={300} zIndex={1000}>
+        <Box position="absolute" bottom="5%" left="4%" width={100} height={300} zIndex={1000}>
                 <Slider
                     value={jsonZoom}
                     onChange={(event, newZoom)=> setJsonZoom(newZoom)}
@@ -57,6 +73,9 @@ export default function MapView (){
                     max={18}
                     orientation="vertical"
                     step={1}
+                    components={{
+                        ValueLabel: ValueLabelComponent,
+                    }}
                     marks={jsonZoomMarks}
                     valueLabelDisplay="auto"
                 />

@@ -13,6 +13,6 @@ This web app is meant more of a tool to query nominatim api to get geospatial da
 
 ## Potential features/ToDo
 
-- Add multilocation selection for multipologons
+- Add multilocation selection for multipolygons
 - Save session selection
 - Manual geojson text input
