@@ -36,6 +36,7 @@ export default function MapView (){
     const [jsonZoom, setJsonZoom] = useState(6)
     const [isGettingJson, setIsGettingJson] = useState(false)
     const [markerPosition, setMarkerPosition] = useState(null)
+    
     const MapClick = () => {
         useMapEvents({
             click: ({latlng}) =>{
