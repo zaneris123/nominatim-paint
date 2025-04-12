@@ -2,13 +2,19 @@ import { create } from 'zustand';
 
 export const useSelectionStore = create((set, get) => ({
     selection: null,
-    color: '#3388ff', // Default leaflet GeoJSON color
+    color: '#3388ff', // Default leaflet GeoJSON fill color
+    outlineColor: '#3388ff', // Default leaflet GeoJSON outline color
+    outlineStyle: 'solid', // Default outline style (solid, dashed, dotted)
+    fillOpacity: 0.2, // Default fill opacity
     groups: {}, // Object to store groups of GeoJSONs
     activeGroupId: null, // Currently active group
     
     setSelection: (nextSelection) => set({ selection: nextSelection }),
     clearSelection: () => set({ selection: null }),
     setColor: (newColor) => set({ color: newColor }),
+    setOutlineColor: (newColor) => set({ outlineColor: newColor }),
+    setOutlineStyle: (style) => set({ outlineStyle: style }),
+    setFillOpacity: (opacity) => set({ fillOpacity: opacity }),
     
     // Group management
     createGroup: (groupName) => {
@@ -20,7 +26,10 @@ export const useSelectionStore = create((set, get) => ({
                     id: groupId,
                     name: groupName,
                     features: [],
-                    color: '#ff8833' // Default color for the group
+                    color: '#ff8833', // Default color for the group
+                    outlineColor: '#ff8833', // Default outline color for the group
+                    outlineStyle: 'solid', // Default outline style for the group
+                    fillOpacity: 0.2 // Default fill opacity for the group
                 }
             },
             activeGroupId: groupId
@@ -36,6 +45,36 @@ export const useSelectionStore = create((set, get) => ({
             [groupId]: {
                 ...state.groups[groupId],
                 color
+            }
+        }
+    })),
+    
+    setGroupOutlineColor: (groupId, outlineColor) => set((state) => ({
+        groups: {
+            ...state.groups,
+            [groupId]: {
+                ...state.groups[groupId],
+                outlineColor
+            }
+        }
+    })),
+    
+    setGroupOutlineStyle: (groupId, outlineStyle) => set((state) => ({
+        groups: {
+            ...state.groups,
+            [groupId]: {
+                ...state.groups[groupId],
+                outlineStyle
+            }
+        }
+    })),
+    
+    setGroupFillOpacity: (groupId, fillOpacity) => set((state) => ({
+        groups: {
+            ...state.groups,
+            [groupId]: {
+                ...state.groups[groupId],
+                fillOpacity
             }
         }
     })),

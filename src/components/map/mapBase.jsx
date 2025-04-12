@@ -1,24 +1,29 @@
 import { 
     Paper, Stack, Table, TableBody, TableCell, TableContainer, TableRow, Button, Box, Collapse, 
-    IconButton, Popover, Tooltip, Typography, Dialog, DialogTitle, DialogContent, 
+    IconButton, Typography, Dialog, DialogTitle, DialogContent, 
     DialogActions, TextField, Tabs, Tab, List, ListItem, ListItemText, ListItemSecondaryAction,
-    Divider
+    Divider, Tooltip
 } from "@mui/material";
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
-import ColorLensIcon from '@mui/icons-material/ColorLens';
 import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
 import DeleteIcon from '@mui/icons-material/Delete';
 import AddIcon from '@mui/icons-material/Add';
 import { useSelectionStore } from "../utils/stores";
 import MapView from "./mapView";
 import { useState } from "react";
+import { GeoJSONStylingControls, getColorPreviewStyle } from "../styling/GeoJSONStyling";
 
 export default function MapBase (){
     const getJson = useSelectionStore((state) => state.selection)
     const color = useSelectionStore((state) => state.color)
     const setColor = useSelectionStore((state) => state.setColor)
+    const outlineColor = useSelectionStore((state) => state.outlineColor)
+    const setOutlineColor = useSelectionStore((state) => state.setOutlineColor)
+    const outlineStyle = useSelectionStore((state) => state.outlineStyle)
+    const setOutlineStyle = useSelectionStore((state) => state.setOutlineStyle)
+    const setFillOpacity = useSelectionStore((state) => state.setFillOpacity)
     const groups = useSelectionStore((state) => state.groups)
     const activeGroupId = useSelectionStore((state) => state.activeGroupId)
     const createGroup = useSelectionStore((state) => state.createGroup)
@@ -27,13 +32,13 @@ export default function MapBase (){
     const addSelectionToGroup = useSelectionStore((state) => state.addSelectionToGroup)
     const removeFeatureFromGroup = useSelectionStore((state) => state.removeFeatureFromGroup)
     const setGroupColor = useSelectionStore((state) => state.setGroupColor)
+    const setGroupOutlineColor = useSelectionStore((state) => state.setGroupOutlineColor)
+    const setGroupOutlineStyle = useSelectionStore((state) => state.setGroupOutlineStyle)
+    const setGroupFillOpacity = useSelectionStore((state) => state.setGroupFillOpacity)
     const getGroupAsGeoJSON = useSelectionStore((state) => state.getGroupAsGeoJSON)
     
     const [copySuccess, setCopySuccess] = useState('');
     const [open, setOpen] = useState(true);
-    const [colorAnchorEl, setColorAnchorEl] = useState(null);
-    const [groupColorAnchorEl, setGroupColorAnchorEl] = useState(null);
-    const [colorTarget, setColorTarget] = useState(null);
     const [createGroupDialog, setCreateGroupDialog] = useState(false);
     const [newGroupName, setNewGroupName] = useState('');
     const [activeTab, setActiveTab] = useState(0);
@@ -67,30 +72,6 @@ export default function MapBase (){
         }
     };
 
-    const handleColorClick = (event) => {
-        setColorTarget('selection');
-        setColorAnchorEl(event.currentTarget);
-    };
-
-    const handleGroupColorClick = (event, groupId) => {
-        setColorTarget(groupId);
-        setGroupColorAnchorEl(event.currentTarget);
-    };
-
-    const handleColorClose = () => {
-        setColorAnchorEl(null);
-        setGroupColorAnchorEl(null);
-    };
-
-    const handleColorSelect = (selectedColor) => {
-        if (colorTarget === 'selection') {
-            setColor(selectedColor);
-        } else {
-            setGroupColor(colorTarget, selectedColor);
-        }
-        handleColorClose();
-    };
-
     const handleCreateGroupOpen = () => {
         setCreateGroupDialog(true);
     };
@@ -116,22 +97,6 @@ export default function MapBase (){
     const handleTabChange = (event, newValue) => {
         setActiveTab(newValue);
     };
-
-    const colorOptions = [
-        '#3388ff', // Default leaflet blue
-        '#ff3333', // Red
-        '#33ff33', // Green
-        '#ffff33', // Yellow
-        '#ff33ff', // Magenta
-        '#33ffff', // Cyan
-        '#ff8833', // Orange
-        '#8833ff'  // Purple
-    ];
-
-    const colorOpen = Boolean(colorAnchorEl);
-    const groupColorOpen = Boolean(groupColorAnchorEl);
-    const colorPopoverId = colorOpen ? 'color-popover' : undefined;
-    const groupColorPopoverId = groupColorOpen ? 'group-color-popover' : undefined;
 
     return(
         <div>
@@ -159,25 +124,34 @@ export default function MapBase (){
                                         </IconButton>
                                     </Box>
                                     {getJson && (
-                                        <Box display="flex">
-                                            <Tooltip title="Change color">
-                                                <IconButton
-                                                    size="small"
-                                                    aria-describedby={colorPopoverId}
-                                                    onClick={handleColorClick}
-                                                    sx={{ mr: 1 }}
+                                        <Box display="flex" flexDirection="column" alignItems="flex-end">
+                                            {/* First row - Styling Controls and Copy Button */}
+                                            <Box display="flex" mb={0.5} alignItems="center">
+                                                <GeoJSONStylingControls
+                                                    fillColor={color}
+                                                    outlineColor={outlineColor}
+                                                    outlineStyle={outlineStyle}
+                                                    onFillColorChange={setColor}
+                                                    onOutlineColorChange={setOutlineColor}
+                                                    onOutlineStyleChange={setOutlineStyle}
+                                                    onFillOpacityChange={setFillOpacity}
+                                                />
+                                                <Button 
+                                                    variant="outlined" 
+                                                    size="small" 
+                                                    startIcon={<ContentCopyIcon sx={{ fontSize: '1rem' }} />}
+                                                    onClick={handleCopyToClipboard}
+                                                    sx={{ 
+                                                        fontSize: '0.7rem', 
+                                                        padding: '2px 8px',
+                                                        minWidth: '60px',
+                                                        height: 28,
+                                                        ml: 1
+                                                    }}
                                                 >
-                                                    <ColorLensIcon sx={{ color: color }} />
-                                                </IconButton>
-                                            </Tooltip>
-                                            <Button 
-                                                variant="outlined" 
-                                                size="small" 
-                                                startIcon={<ContentCopyIcon />}
-                                                onClick={handleCopyToClipboard}
-                                            >
-                                                {copySuccess || "Copy"}
-                                            </Button>
+                                                    {copySuccess || "Copy"}
+                                                </Button>
+                                            </Box>
                                         </Box>
                                     )}
                                 </Box>
@@ -199,9 +173,12 @@ export default function MapBase (){
                                             <TableContainer>
                                                 <Table>
                                                     <TableBody>
-                                                        {Object.keys(getJson.features[0].properties).map((property)=>{
-                                                            return(<TableRow key={property}><TableCell>{property}</TableCell><TableCell>{JSON.stringify(getJson.features[0].properties[property])}</TableCell></TableRow>)
-                                                        })}
+                                                        {Object.keys(getJson.features[0].properties).map((property)=>( 
+                                                            <TableRow key={property}>
+                                                                <TableCell>{property}</TableCell>
+                                                                <TableCell>{JSON.stringify(getJson.features[0].properties[property])}</TableCell>
+                                                            </TableRow>
+                                                        ))}
                                                     </TableBody>
                                                 </Table>
                                             </TableContainer>
@@ -232,7 +209,12 @@ export default function MapBase (){
                                                 <ListItem 
                                                     sx={{ 
                                                         bgcolor: activeGroupId === group.id ? 'rgba(0, 0, 0, 0.06)' : 'inherit',
-                                                        cursor: 'pointer'
+                                                        cursor: 'pointer',
+                                                        display: 'flex',
+                                                        flexDirection: 'column',
+                                                        alignItems: 'flex-start',
+                                                        py: 1,
+                                                        pr: 12  // Add padding to avoid text overlap with controls
                                                     }}
                                                     onClick={() => setActiveGroup(group.id)}
                                                 >
@@ -242,47 +224,62 @@ export default function MapBase (){
                                                                 <Box 
                                                                     width={15} 
                                                                     height={15} 
-                                                                    bgcolor={group.color} 
-                                                                    borderRadius="50%" 
+                                                                    sx={{
+                                                                        ...getColorPreviewStyle(group.color),
+                                                                        border: group.outlineColor === 'transparent' ? 
+                                                                            '1px solid #aaa' : 
+                                                                            `2px ${group.outlineStyle === 'dotted' ? 'dotted' : (group.outlineStyle === 'dashed' ? 'dashed' : 'solid')} ${group.outlineColor}`,
+                                                                        borderRadius: '50%'
+                                                                    }}
                                                                     mr={1}
                                                                 />
                                                                 {group.name}
                                                             </Box>
                                                         }
                                                         secondary={`${group.features.length} feature${group.features.length !== 1 ? 's' : ''}`} 
+                                                        sx={{ mb: 0 }}
                                                     />
                                                     <ListItemSecondaryAction>
-                                                        <Tooltip title="Change color">
-                                                            <IconButton 
-                                                                edge="end" 
-                                                                aria-label="change color"
-                                                                onClick={(e) => handleGroupColorClick(e, group.id)}
+                                                        <Box display="flex" flexDirection="column" alignItems="flex-end">
+                                                            {/* Group styling controls */}
+                                                            <GeoJSONStylingControls
+                                                                fillColor={group.color}
+                                                                outlineColor={group.outlineColor || group.color}
+                                                                outlineStyle={group.outlineStyle || 'solid'}
+                                                                onFillColorChange={(color) => setGroupColor(group.id, color)}
+                                                                onOutlineColorChange={(color) => setGroupOutlineColor(group.id, color)}
+                                                                onOutlineStyleChange={(style) => setGroupOutlineStyle(group.id, style)}
+                                                                onFillOpacityChange={(opacity) => setGroupFillOpacity(group.id, opacity)}
                                                                 size="small"
-                                                            >
-                                                                <ColorLensIcon sx={{ color: group.color }} />
-                                                            </IconButton>
-                                                        </Tooltip>
-                                                        <Tooltip title="Copy GeoJSON">
-                                                            <IconButton 
-                                                                edge="end" 
-                                                                aria-label="copy group"
-                                                                onClick={() => handleCopyGroupToClipboard(group.id)}
-                                                                size="small"
-                                                                disabled={group.features.length === 0}
-                                                            >
-                                                                <ContentCopyIcon />
-                                                            </IconButton>
-                                                        </Tooltip>
-                                                        <Tooltip title="Delete group">
-                                                            <IconButton 
-                                                                edge="end" 
-                                                                aria-label="delete"
-                                                                onClick={() => deleteGroup(group.id)}
-                                                                size="small"
-                                                            >
-                                                                <DeleteIcon />
-                                                            </IconButton>
-                                                        </Tooltip>
+                                                            />
+                                                            
+                                                            {/* Group actions */}
+                                                            <Box display="flex" mt={0.5}>
+                                                                <Tooltip title="Copy GeoJSON">
+                                                                    <IconButton 
+                                                                        edge="end" 
+                                                                        aria-label="copy group"
+                                                                        onClick={() => handleCopyGroupToClipboard(group.id)}
+                                                                        size="small"
+                                                                        disabled={group.features.length === 0}
+                                                                        sx={{ width: 24, height: 24 }}
+                                                                    >
+                                                                        <ContentCopyIcon sx={{ fontSize: '0.9rem' }} />
+                                                                    </IconButton>
+                                                                </Tooltip>
+                                                                <Tooltip title="Delete group">
+                                                                    <IconButton 
+                                                                        edge="end" 
+                                                                        aria-label="delete"
+                                                                        onClick={() => deleteGroup(group.id)}
+                                                                        size="small"
+                                                                        sx={{ width: 24, height: 24 }}
+                                                                    >
+                                                                        <DeleteIcon sx={{ fontSize: '0.9rem' }} />
+                                                                    </IconButton>
+                                                                </Tooltip>
+                                                            </Box>
+                                                        </Box>
                                                     </ListItemSecondaryAction>
                                                 </ListItem>
                                                 
@@ -321,76 +318,6 @@ export default function MapBase (){
                                 )}
                             </Box>
                         )}
-                        
-                        {/* Color Popover for Selection */}
-                        <Popover
-                            id={colorPopoverId}
-                            open={colorOpen}
-                            anchorEl={colorAnchorEl}
-                            onClose={handleColorClose}
-                            anchorOrigin={{
-                                vertical: 'bottom',
-                                horizontal: 'center',
-                            }}
-                            transformOrigin={{
-                                vertical: 'top',
-                                horizontal: 'center',
-                            }}
-                        >
-                            <Box display="flex" flexWrap="wrap" p={1} width="156px">
-                                {colorOptions.map((colorOption) => (
-                                    <Box
-                                        key={colorOption}
-                                        width="36px"
-                                        height="36px"
-                                        bgcolor={colorOption}
-                                        borderRadius="4px"
-                                        m="2px"
-                                        sx={{ 
-                                            cursor: 'pointer',
-                                            border: color === colorOption && colorTarget === 'selection' ? '2px solid black' : '2px solid transparent',
-                                            '&:hover': { opacity: 0.8 }
-                                        }}
-                                        onClick={() => handleColorSelect(colorOption)}
-                                    />
-                                ))}
-                            </Box>
-                        </Popover>
-                        
-                        {/* Color Popover for Groups */}
-                        <Popover
-                            id={groupColorPopoverId}
-                            open={groupColorOpen}
-                            anchorEl={groupColorAnchorEl}
-                            onClose={handleColorClose}
-                            anchorOrigin={{
-                                vertical: 'bottom',
-                                horizontal: 'center',
-                            }}
-                            transformOrigin={{
-                                vertical: 'top',
-                                horizontal: 'center',
-                            }}
-                        >
-                            <Box display="flex" flexWrap="wrap" p={1} width="156px">
-                                {colorOptions.map((colorOption) => (
-                                    <Box
-                                        key={colorOption}
-                                        width="36px"
-                                        height="36px"
-                                        bgcolor={colorOption}
-                                        borderRadius="4px"
-                                        m="2px"
-                                        sx={{ 
-                                            cursor: 'pointer',
-                                            border: colorTarget && groups[colorTarget]?.color === colorOption ? '2px solid black' : '2px solid transparent',
-                                            '&:hover': { opacity: 0.8 }
-                                        }}
-                                        onClick={() => handleColorSelect(colorOption)}
-                                    />
-                                ))}
-                            </Box>
-                        </Popover>
                         
                         {/* Create Group Dialog */}
                         <Dialog open={createGroupDialog} onClose={handleCreateGroupClose}>

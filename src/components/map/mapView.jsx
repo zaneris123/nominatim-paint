@@ -5,6 +5,7 @@ import { useState } from 'react';
 import { GeoJSON, MapContainer, Marker, TileLayer, useMapEvents } from 'react-leaflet';
 import getPolygonGeoJSON, { jsonZoomMarks } from '../utils/getGeoJSON';
 import { useSelectionStore } from '../utils/stores';
+import { getGeoJSONStyle } from '../styling/GeoJSONStyling';
 
 delete L.Icon.Default.prototype._getIconUrl;
 
@@ -34,6 +35,9 @@ export default function MapView (){
     const setCurrentSelectedJson = useSelectionStore((state) => state.setSelection)
     const currentSelectedJson = useSelectionStore((state) => state.selection)
     const currentColor = useSelectionStore((state) => state.color)
+    const currentOutlineColor = useSelectionStore((state) => state.outlineColor)
+    const currentOutlineStyle = useSelectionStore((state) => state.outlineStyle)
+    const currentFillOpacity = useSelectionStore((state) => state.fillOpacity)
     const groups = useSelectionStore((state) => state.groups)
     const [jsonZoom, setJsonZoom] = useState(6)
     const [isGettingJson, setIsGettingJson] = useState(false)
@@ -59,25 +63,13 @@ export default function MapView (){
         return null
     }
 
-    // Style for the current selection
-    const selectionStyle = {
-        fillColor: currentColor,
-        weight: 2,
-        opacity: 1,
-        color: currentColor,
-        fillOpacity: 0.2
-    };
-    
-    // Function to generate style for group layers
-    const getGroupStyle = (groupColor) => {
-        return {
-            fillColor: groupColor,
-            weight: 2,
-            opacity: 1,
-            color: groupColor,
-            fillOpacity: 0.2
-        };
-    };
+    // Style for the current selection using the utility function
+    const selectionStyle = getGeoJSONStyle(
+        currentColor, 
+        currentOutlineColor, 
+        currentOutlineStyle, 
+        currentFillOpacity
+    );
 
     return(
         <Box position="relative" width="100%" height="95vh">
@@ -95,11 +87,17 @@ export default function MapView (){
                     type: "FeatureCollection",
                     features: group.features
                 };
+                const groupStyle = getGeoJSONStyle(
+                    group.color, 
+                    group.outlineColor || group.color, 
+                    group.outlineStyle || 'solid',
+                    group.fillOpacity || 0.2
+                );
                 return (
                     <GeoJSON 
                         key={`group-${group.id}`}
                         data={groupData}
-                        style={getGroupStyle(group.color)}
+                        style={() => groupStyle}
                     />
                 );
             })}
