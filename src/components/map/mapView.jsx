@@ -93,9 +93,11 @@ export default function MapView (){
                     group.outlineStyle || 'solid',
                     group.fillOpacity || 0.2
                 );
+                
+                // Add length of features to the key to force re-render when features change
                 return (
                     <GeoJSON 
-                        key={`group-${group.id}`}
+                        key={`group-${group.id}-${group.features.length}`}
                         data={groupData}
                         style={() => groupStyle}
                     />
